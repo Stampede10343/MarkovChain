@@ -1,22 +1,27 @@
 import random
 
-class MarkovKey:
-	def __init__(self, text):
-		self.text = text
-		self.occurences = 1
-
-	def addOccurence(self):
-		self.occurences += 1
-
-class MarkovValueList:
+class MarkovValue:
 	def __init__(self, value):
 		self.values = {value: 1}
 
 	def addValue(self, value):
 		if value in self.values:
-			self.values[value] = self.values[value] += 1
+			occurences = self.values[value]
+			occurences += 1
+			self.values[value] = occurences
 		else:
-			self.values[value] = {value: 1}
+			self.values[value] = 1
+
+	def getBest(self):
+		bestValue = 0
+		v = ""
+
+		for value in self.values.keys():
+			if self.values[value] > bestValue:
+				bestValue = self.values[value]
+				v = value
+
+		return v
 
 class Input:
 	def __init__(self, input, chainLength, generate):
@@ -35,20 +40,24 @@ class Input:
 				key += splitInput[a] + ' '
 
 			if key in self.markovMap:
-				self.markovMap[key].append(splitInput[i+self.length])
+				curValue = self.markovMap[key]
+				curValue.addValue(splitInput[i+self.length])
+				self.markovMap[key] = curValue
+
 			else:
-				self.markovMap[key] = [splitInput[i+self.length]]
+				self.markovMap[key] = MarkovValue(splitInput[i+self.length])
+
 			i+=1
 
 	def Output(self):
 		for i in range(0, self.wordsToPrint/self.length):
 			key = random.choice(self.markovMap.keys())
-			value = random.choice(self.markovMap[key])
-			print key.strip() + ' ', self.markovMap[key][self.markovMap[key].index(value)].strip() + ' ',
+			value = self.markovMap[key].getBest()
+			print key.strip() + ' ', value + ' ',
 
 
 
-input = Input("text.txt", 3, 18)
+input = Input("text.txt", 3, 24)
 
 input.MakeChains()
 input.Output()
